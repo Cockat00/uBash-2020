@@ -23,8 +23,8 @@ char *get_input(){
 void uBash(){
 	char *path = NULL;
 	char *big_input = NULL;
-	path = getcwd(path,0);	//getcwd will use malloc() to allocate the correct amount of bytes 
 
+	path = getcwd(NULL,0);	//getcwd will use malloc() to allocate the correct amount of bytes 
 	if(path == NULL) fail_errno(path);
 	printf("[%s]$ ",path);
         free(path);	
@@ -35,7 +35,7 @@ void uBash(){
 		exit(EXIT_SUCCESS);
 	}else{
 		if(strcmp(big_input,"") > 0){
-			printf("%s\n",big_input);	
+			//printf("%s\n",big_input);	
 			free(big_input);
 		}	
 	}	
