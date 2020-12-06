@@ -1,22 +1,25 @@
 CC=clang
 CFLAGS=-Wall -Werror -pedantic -g3
 EXEC=uBash
-OBJS=main.o utils.o shell.o parse.o
+OBJS=main.o utils.o shell.o parse.o commands.o
 
 $(EXEC): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC)
 
-parse.o: main.o utils.o shell.o parse.c library.h
+main.o: utils.o shell.o parse.o commands.o main.c library.h
+	$(CC) $(CFLAGS) -c main.c
+
+shell.o: utils.o parse.o commands.o shell.c library.h
+	$(CC) $(CFLAGS) -c shell.c
+
+parse.o: utils.o commands.o parse.c library.h
 	$(CC) $(CFLAGS) -c parse.c
 
-shell.o: main.o utils.o shell.c library.h
-	$(CC) $(CFLAGS) -c shell.c
+commands.o: utils.o commands.c library.h
+	$(CC) $(CFLAGS) -c commands.c
 
 utils.o: utils.c library.h
 	$(CC) $(CFLAGS) -c utils.c
-
-main.o: main.c library.h
-	$(CC) $(CFLAGS) -c main.c
 
 .PHONY: clear
 

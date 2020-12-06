@@ -35,7 +35,7 @@ void uBash(){
 		exit(EXIT_SUCCESS);
 	}else{
 		if(strcmp(big_input,"") > 0){
-			//printf("%s\n",big_input);	
+			parse_input(big_input);	
 			free(big_input);
 		}	
 	}	
