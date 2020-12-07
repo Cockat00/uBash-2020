@@ -26,8 +26,12 @@ char *parse_builtin(char *saveptr, char *token){
 void exec_builtin(char *arg){
 	//TODO: (optional) Set a default home path in case arg == NULL or ~
 	
-	if(strcmp(arg,"ENUMARG") != 0)
-	       	cd(arg); // Asolutamente temporanea, richiede una gestione migliore..
+	if(strcmp(arg,"ENUMARG") != 0){
+		if(strcmp(arg,"~") == 0) 
+			arg = getenv("HOME");
+	    
+	    cd(arg);
+	}
 }
 
 ////////BUILTIN FUNCTIONS END/////////

@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -Werror -pedantic -g3
+CFLAGS=-Wall -Werror -pedantic -std=gnu11 -g3 -ggdb
 EXEC=uBash
 OBJS=main.o utils.o shell.o parse.o commands.o
 

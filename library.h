@@ -8,9 +8,9 @@
 #include <string.h>
 
 #define STD_BUFSIZE 128
-#define PIPE "|"
-#define REDIN "<"
-#define REDOUT ">"
+#define E_PIPE "Invalid presence of pipe"
+#define EREDIN "Invalid presence of input redirection"
+#define EREDOUT "Invalid presence of output redirection"
 
 typedef struct _command{
 	bool pipes;
@@ -33,3 +33,4 @@ void exec_builtin(char *arg);
 
 //commands.c
 void cd(const char *path);
+char *error_check(const char *token);
