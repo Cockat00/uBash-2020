@@ -13,7 +13,7 @@ char *get_input(){
 		if(buf[buf_len - 1] == '\n')
 			buf[buf_len - 1] = '\0';
 
-		input = malloc(buf_len);
+		input = malloc(buf_len + 1);
 		if(input == NULL) return "";
 		strcpy(input,buf);
 	}
@@ -27,7 +27,7 @@ void uBash(){
 	path = getcwd(NULL,0);	//getcwd will use malloc() to allocate the correct amount of bytes 
 	if(path == NULL) fail_errno(path);
 	printf("[%s]$ ",path);
-        free(path);	
+        free(path);
 
 	big_input = get_input();
 	if(big_input == NULL){

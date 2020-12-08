@@ -12,10 +12,10 @@
 #define EREDIN "Invalid presence of input redirection"
 #define EREDOUT "Invalid presence of output redirection"
 
-typedef struct _command{
+struct command{
 	bool pipes;
 	bool builtin;
- }command;
+ };
 
 // utils.c
 void fail_errno(char *arg);
