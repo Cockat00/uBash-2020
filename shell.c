@@ -21,7 +21,6 @@ char *get_input(){
 
 	if(fgets(buf,STD_BUFSIZE,stdin) != NULL){
 		size_t buf_len = strlen(buf);
-		printf("%ld\n", buf_len);
 		if(buf[buf_len - 1] == '\n'){
 			buf[buf_len - 1] = '\0';
 			buf_len -= 1;

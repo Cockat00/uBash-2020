@@ -33,16 +33,17 @@ char *parse_builtin(char *saveptr, char *token){
 
 
 char *parse_ext(char *saveptr, char *token){
-	return "SUCEESS";
+	return "(null)";
 }
 
 /*With parse_cmd we'll be able to detect whenever
   a string refer to a builtin or an external command.*/
-int parse_cmd(char *cmd, int count){
+int parse_cmd(char *cmd, char *ptr, int count){
 	char *saveptr = NULL;
 	char *token = NULL;
 	char *cmmd = NULL; //La prima stringa che definisce il comando da eseguire
 
+	printf("%s\n", ptr);
 	token = strtok_r(cmd," ",&saveptr);
 	if(token){
 		if(strcmp(token,"cd") == 0){ 
@@ -60,11 +61,10 @@ int parse_cmd(char *cmd, int count){
 
 
 /*parse_input's duty is to wrap the big input in token
- using '|' as a delimiter. Each token will be treated 
- as a single command and parsed*/ 
+ using ' ' as a delimiter. The first token define the behaviour
+ the program will have*/ 
 void parse_input(char *big_input){
-	char *token = NULL,*saveptr = NULL,*str1 = NULL;
-	int count = 0;
+	char *token = NULL,*saveptr = NULL;
 
 	if(big_input[0] == '|'){
 		fprintf(stderr, "Invalid usage of token %c\n", big_input[0]);
@@ -75,13 +75,25 @@ void parse_input(char *big_input){
 	if(cpy == NULL) fail_errno("parse_input");
 	strcpy(cpy,big_input);
 
-	for(str1 = cpy; ;str1 = NULL){
+	char *cmmd = NULL;
+	token = strtok_r(cpy," ",&saveptr);
+
+	if(strcmp("cd",token) == 0){
+		cmmd = parse_builtin(saveptr,token);	//Start builtin command module
+		exec_builtin(cmmd);
+	}else _dummy_method();
+	
+	free(cpy);
+}
+
+
+// Old parser
+
+	/*for(str1 = cpy; ;str1 = NULL){
 		token = strtok_r(str1,"|",&saveptr);
 		if(token == NULL) break;
 		if(parse_cmd(token,count) == -1)
 			break;
 
 		count++;
-	}
-	free(cpy);
-}
+	}*/
