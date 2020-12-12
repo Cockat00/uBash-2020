@@ -21,7 +21,7 @@ void exec_builtin(char *arg){
 	cd(arg);
 }
 
-void cd(const char *new_path){
+void cd(char *new_path){
 	if(chdir(new_path) == -1) 
-		fail("cd");
+		fail(new_path);
 }

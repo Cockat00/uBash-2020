@@ -35,10 +35,10 @@ void uBash();
 
 // parse.c
 void parse_input(char *arg);
-char *parse_builtin(char *saveptr, char *token);
+char *parse_builtin(char *token, char *saveptr);
 	
 
 //commands.c
-void cd(const char *path);
+void cd(char *path);
 char *error_check(const char *token);
 void exec_builtin(char *arg);
