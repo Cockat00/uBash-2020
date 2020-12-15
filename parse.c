@@ -24,28 +24,10 @@ char *parse_builtin(char *token, char *saveptr){
 }
 
 
-int count_args(char *vect){
-	int num_arg = 0;
-	char *delim = " ";
-	char *token, *str;
-	
-	char *copy = malloc(strlen(vect) + 1);
-	if(copy == NULL) return -1;
-	strcpy(copy,vect);
-
-	for(str=copy; ; str = NULL){
-		token = strtok(str,delim);
-		if(token == NULL) break;
-		num_arg++;
-	}
-	free(copy);
-	return num_arg;
-}
-
 
 void parse_ext(char *ext_cmd){
 	char *token = NULL, *tmp = NULL, *saveptr = NULL;
-	int count = 0;
+	int count = 0;		// Used for some error check (to be implemented soon)
 
 	char *cpy = malloc(strlen(ext_cmd) + 1);
 	if(cpy == NULL) fail_errno("parse_ext");
@@ -54,9 +36,9 @@ void parse_ext(char *ext_cmd){
 	for(tmp = cpy; ;tmp = NULL){
 		token = strtok_r(tmp,"|",&saveptr);
 		if(token == NULL) break;
+		exec_ext(token);
 		//printf("Actual: '%s' | Next: '%s'\n", token, saveptr);
-		if(strcmp("",saveptr) != 0) printf("Pipe detected\n");
-
+		//if(strcmp("",saveptr) != 0) printf("Pipe detected\n");
 		count++;
 	}
 	free(cpy);
