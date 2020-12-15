@@ -20,11 +20,16 @@ int count_args(char *vect){
 }
 
 
-void seek_args(char *src, char **dest){
+int seek_args(char *src, char **dest){
 	char *delim = " ";
 	int i = 0;
 
 	char *token = strtok(src,delim);
+
+	if(strcmp("cd",token) == 0){
+		fprintf(stderr, "Invalid use of '%s' builtin command", token);
+		return -1;
+	}
 
 	while(token){
 		dest[i] = token;
@@ -33,7 +38,7 @@ void seek_args(char *src, char **dest){
 	}
 	dest[i] = NULL;
 
-	return;	
+	return 0;	
 }
 
 
@@ -46,16 +51,17 @@ void exec_ext(char *ext){
 		int num_args = count_args(ext);
 
 		char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-		seek_args(ext,cmd_args);
-		if(execvp(cmd_args[0],cmd_args) == -1) fail_errno(cmd_args[0]);
-
+		if(seek_args(ext,cmd_args) == 0){
+			if(execvp(cmd_args[0],cmd_args) == -1) 
+				fail(cmd_args[0]);
+		}
+		
 		printf("\n");
 		free(cmd_args);
-		
 	}else{
 		int status;
+			//TODO: Extends exit status check
 			if(waitpid(pid,&status,0) == -1) fail_errno("waitpid()");
-			//if(strcmp("",cmd_and_args) != 0) free(cmd_and_args);
 
 			if(WIFEXITED(status))
 				printf("(%d) - exited with status %d\n",pid,WEXITSTATUS(status));
