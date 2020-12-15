@@ -8,3 +8,10 @@ void fail_errno(char *arg){
 void fail(char *arg){
 	fprintf(stderr,"%s(%d): %s\n",arg,errno,strerror(errno));
 }
+
+int char_cntrl(char ch){
+	int res = -1;
+	if(ch == '|' || ch == '<' || ch == '>') 
+		res = 0;
+	return res;
+}

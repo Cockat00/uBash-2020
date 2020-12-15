@@ -51,7 +51,7 @@ void exec_ext(char *ext){
 
 		printf("\n");
 		free(cmd_args);
-
+		
 	}else{
 		int status;
 			if(waitpid(pid,&status,0) == -1) fail_errno("waitpid()");

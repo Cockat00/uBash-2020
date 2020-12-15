@@ -46,13 +46,18 @@ void parse_ext(char *ext_cmd){
 
 
 
-/*parse_input's duty is to wrap the big input in token
- using ' ' as a delimiter. The first token define the behaviour
- the program will have.*/ 
+/*parse_input's duty is to search for syntax errors and 
+  then define whenever the input refer to a builtin or
+  an external command.*/ 
 void parse_input(char *big_input){
 
-	if(big_input[0] == '|' || big_input[0] == '<' || big_input[0] == '>'){
+	if(char_cntrl(big_input[0]) == 0){
 		fprintf(stderr, "Invalid usage of token %c\n", big_input[0]);
+		return;
+	}
+
+	if(char_cntrl(big_input[strlen(big_input) - 1]) == 0){
+		fprintf(stderr, "Invalid usage of token %c\n", big_input[strlen(big_input) - 1]);
 		return;
 	}
 
@@ -80,9 +85,9 @@ void parse_input(char *big_input){
 		if(token == NULL) break;
 		if(parse_cmd(token,count) == -1)
 			break;
-
-		count++;
 	}*/
+
+
 
 /*With parse_cmd we'll be able to detect whenever
   a string refer to a builtin or an external command.*/

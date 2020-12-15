@@ -25,6 +25,7 @@ struct command{
 // utils.c
 void fail_errno(char *arg);
 void fail(char *arg);
+int char_cntrl(char ch);
 
 
 // shell.c
