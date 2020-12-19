@@ -1,9 +1,8 @@
 #include "library.h"
 
 
-int count_args(char *vect){
+int count_args(char *vect, char *delim){
 	int num_arg = 0;
-	char *delim = " ";
 	char *token, *str;
 	
 	char *copy = malloc(strlen(vect) + 1);
@@ -43,12 +42,13 @@ int seek_args(char *src, char **dest){
 
 
 void exec_ext(char *ext){
+
 	pid_t pid;
 
 	pid = fork();
 	if(pid == -1) fail_errno("exec_ext");
 	if(pid == 0){
-		int num_args = count_args(ext);
+		int num_args = count_args(ext," ");
 
 		char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
 		if(seek_args(ext,cmd_args) == 0){

@@ -6,6 +6,7 @@ void _dummy_method(){
 }
 
 
+
 char *parse_builtin(char *token, char *saveptr){
 	char *res = NULL;
 
@@ -25,23 +26,24 @@ char *parse_builtin(char *token, char *saveptr){
 
 
 
-void parse_ext(char *ext_cmd){
+void parse_ext2(char *ext_cmd){
 	char *token = NULL, *tmp = NULL, *saveptr = NULL;
-	int count = 0;		// Used for some error check (to be implemented soon)
+	int num_cmd = count_args(ext_cmd,"|");
+	int i = 0;
 
-	char *cpy = malloc(strlen(ext_cmd) + 1);
-	if(cpy == NULL) fail_errno("parse_ext");
-	strcpy(cpy,ext_cmd);
+	char **cmd_list = (char **)malloc(num_cmd * sizeof(char *));
+	if(cmd_list == NULL) fail_errno(ext_cmd);
 
-	for(tmp = cpy; ;tmp = NULL){
+	for(tmp = ext_cmd; ;tmp = NULL){
 		token = strtok_r(tmp,"|",&saveptr);
 		if(token == NULL) break;
-		exec_ext(token);
-		//printf("Actual: '%s' | Next: '%s'\n", token, saveptr);
-		//if(strcmp("",saveptr) != 0) printf("Pipe detected\n");
-		count++;
+		cmd_list[i++] = token;
 	}
-	free(cpy);
+
+	for(int j = 0; j < num_cmd; ++j)
+		exec_ext(cmd_list[j]);
+
+	free(cmd_list);
 }
 
 
@@ -73,7 +75,7 @@ void parse_input(char *big_input){
 		cmmd = parse_builtin(token,saveptr);	
 		exec_builtin(cmmd);
 	}else{
-		parse_ext(big_input);
+		parse_ext2(big_input);
 	}
 }
 
@@ -87,7 +89,23 @@ void parse_input(char *big_input){
 			break;
 	}*/
 
+/*void parse_ext(char *ext_cmd){
+	char *token = NULL, *tmp = NULL, *saveptr = NULL;
+	int count = 0;		// Used for some error check (to be implemented soon)
 
+	char *cpy = malloc(strlen(ext_cmd) + 1);
+	if(cpy == NULL) fail_errno("parse_ext");
+	strcpy(cpy,ext_cmd);
+
+	for(tmp = cpy; ;tmp = NULL){
+		token = strtok_r(tmp,"|",&saveptr);
+		if(token == NULL) break;
+		exec_ext(token);
+		//printf("Actual: '%s' | Next: '%s'\n", token, saveptr);
+		count++;
+	}
+	free(cpy);
+}*/
 
 /*With parse_cmd we'll be able to detect whenever
   a string refer to a builtin or an external command.*/

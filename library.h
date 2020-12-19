@@ -1,3 +1,4 @@
+
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
@@ -44,3 +45,4 @@ void parse_ext(char *ext_cmd);
 void cd(char *path);
 void exec_builtin(char *arg);
 void exec_ext(char *ext);
+int count_args(char *vect, char *delim);
