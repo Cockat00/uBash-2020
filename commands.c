@@ -41,9 +41,64 @@ int seek_args(char *src, char **dest){
 }
 
 
-void exec_ext(char *ext){
+void exec_ext(char **ext, int num_cmd){
 
 	pid_t pid;
+	int pipes = -1;
+	int pipefd[2];
+	int wpid;
+
+	if(num_cmd > 1){
+		if(pipe2(pipefd,0) == -1) fail_errno("exec_ext");
+		pipes = 0;
+	}
+
+	for(int j = 0; j < num_cmd; j++){
+		pid = fork();
+		if(pid == -1) fail_errno("exec_ext");
+		if(pid == 0){
+
+			if(pipes == 0){
+				
+				if((j - 1) >= 0)
+					_dup2(pipefd[0],pipefd[1],STDIN_FILENO);
+
+				if((j + 1) < num_cmd)
+					_dup2(pipefd[1],pipefd[0],STDOUT_FILENO);
+			}
+
+			int num_args = count_args(ext[j]," ");
+
+			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
+			if(seek_args(ext[j],cmd_args) == 0){
+				if(execvp(cmd_args[0],cmd_args) == -1) 
+					fail(cmd_args[0]);
+			}
+		
+			printf("\n");
+			free(cmd_args);
+		}
+	}
+
+	if(pipes == 0){
+		close(pipefd[0]);
+		close(pipefd[1]);
+	}
+
+	int status;
+
+	while((wpid = waitpid(-1,&status,0)) > 0){
+		//TODO: Extends exit status check
+		if(wpid == -1) fail_errno("waitpid()");
+
+		if(WIFEXITED(status))
+			printf("(%d) - exited with status %d\n",pid,WEXITSTATUS(status));
+		else
+			printf("Something went wrong\n");
+	}
+	
+		
+	/*pid_t pid;
 
 	pid = fork();
 	if(pid == -1) fail_errno("exec_ext");
@@ -67,7 +122,7 @@ void exec_ext(char *ext){
 				printf("(%d) - exited with status %d\n",pid,WEXITSTATUS(status));
 			else
 				printf("Something went wrong\n");
-	}
+	}*/
 }
 
 

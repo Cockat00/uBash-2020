@@ -40,8 +40,7 @@ void parse_ext2(char *ext_cmd){
 		cmd_list[i++] = token;
 	}
 
-	for(int j = 0; j < num_cmd; ++j)
-		exec_ext(cmd_list[j]);
+		exec_ext(cmd_list,num_cmd);
 
 	free(cmd_list);
 }
