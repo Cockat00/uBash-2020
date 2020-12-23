@@ -14,9 +14,9 @@
 // Errors
 #define ELARG "Too less arguments"							// Error Less ARGuments
 #define EMARG "Too many arguments"							// Error More ARGuments
-#define E_PIPE "Invalid presence of pipe"
 #define EREDIN "Invalid presence of input redirection"
 #define EREDOUT "Invalid presence of output redirection"
+
 
 
 // utils.c

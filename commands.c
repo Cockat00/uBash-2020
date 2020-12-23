@@ -107,7 +107,9 @@ void exec_ext(char **ext, int num_cmd){
 				if(wpid == -1) 
 					fail_errno("waitpid()");
 
+			#ifdef DEBUG
 				child_status_handle(status);
+			#endif
 			}
 		}
 	}
