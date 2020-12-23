@@ -47,7 +47,7 @@ void uBash(){
         free(path);
 
 	big_input = get_input();
-	if(big_input == NULL){
+	if(big_input == NULL || strcmp("exit",big_input) == 0){
 		printf("\n");
 		exit(EXIT_SUCCESS);
 	}else{

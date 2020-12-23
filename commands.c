@@ -25,10 +25,10 @@ int seek_args(char *src, char **dest){
 
 	char *token = strtok(src,delim);
 
-	if(strcmp("cd",token) == 0){
+	/*if(strcmp("cd",token) == 0){
 		fprintf(stderr, "Invalid use of '%s' builtin command", token);
 		return -1;
-	}
+	}*/
 
 	while(token){
 		dest[i] = token;
@@ -41,88 +41,76 @@ int seek_args(char *src, char **dest){
 }
 
 
-void exec_ext(char **ext, int num_cmd){
 
-	pid_t pid;
+void child_status_handle(int status){
+	if (WIFEXITED(status)) 
+		printf("child exited (%d)\n", WEXITSTATUS(status));
+    else if (WIFSIGNALED(status)) 
+   		printf("child killed (%d)\n", WTERMSIG(status));
+    else if (WIFSTOPPED(status))
+    	printf("child stopped (%d)\n", WSTOPSIG(status));
+    else printf("Unknown error\n");
+}
+
+
+
+void exec_ext(char **ext, int num_cmd){
 	int pipes = -1;
 	int pipefd[2];
-	int wpid;
+	int fd_in = 0;
 
-	if(num_cmd > 1){
-		if(pipe2(pipefd,0) == -1) fail_errno("exec_ext");
-		pipes = 0;
-	}
+	if(num_cmd > 1) pipes = 0;
 
-	for(int j = 0; j < num_cmd; j++){
-		pid = fork();
+	for(int j = 0; j < num_cmd; ++j){
+
+		if(pipes == 0){
+			if(pipe2(pipefd,O_CLOEXEC) == -1) 
+			fail_errno("exec_ext");	
+		}
+
+		pid_t pid = fork();
 		if(pid == -1) fail_errno("exec_ext");
 		if(pid == 0){
-
 			if(pipes == 0){
-				
-				if((j - 1) >= 0)
-					_dup2(pipefd[0],pipefd[1],STDIN_FILENO);
-
-				if((j + 1) < num_cmd)
-					_dup2(pipefd[1],pipefd[0],STDOUT_FILENO);
+				if(fd_in != 0) _dup(fd_in,STDIN_FILENO);
+				if((j + 1) < num_cmd) _dup(pipefd[1],STDOUT_FILENO);
+				close(pipefd[0]);
+				close(pipefd[1]);
 			}
 
 			int num_args = count_args(ext[j]," ");
 
 			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
 			if(seek_args(ext[j],cmd_args) == 0){
-				if(execvp(cmd_args[0],cmd_args) == -1) 
-					fail(cmd_args[0]);
+				if(execvp(cmd_args[0],cmd_args) == -1){
+					printf("\n");
+					free(cmd_args);
+					fail_errno(cmd_args[0]);
+				}
 			}
 		
 			printf("\n");
 			free(cmd_args);
+		}else{
+
+			int status;
+			int wpid;
+
+			while((wpid = waitpid(-1,&status,0)) > 0){
+				if(pipes == 0){
+					close(pipefd[1]);
+					fd_in = pipefd[0];
+					if(j >= num_cmd)
+						close(pipefd[0]);
+				}
+
+				if(wpid == -1) 
+					fail_errno("waitpid()");
+
+				child_status_handle(status);
+			}
 		}
 	}
-
-	if(pipes == 0){
-		close(pipefd[0]);
-		close(pipefd[1]);
-	}
-
-	int status;
-
-	while((wpid = waitpid(-1,&status,0)) > 0){
-		//TODO: Extends exit status check
-		if(wpid == -1) fail_errno("waitpid()");
-
-		if(WIFEXITED(status))
-			printf("(%d) - exited with status %d\n",pid,WEXITSTATUS(status));
-		else
-			printf("Something went wrong\n");
-	}
-	
-		
-	/*pid_t pid;
-
-	pid = fork();
-	if(pid == -1) fail_errno("exec_ext");
-	if(pid == 0){
-		int num_args = count_args(ext," ");
-
-		char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-		if(seek_args(ext,cmd_args) == 0){
-			if(execvp(cmd_args[0],cmd_args) == -1) 
-				fail(cmd_args[0]);
-		}
-		
-		printf("\n");
-		free(cmd_args);
-	}else{
-		int status;
-			//TODO: Extends exit status check
-			if(waitpid(pid,&status,0) == -1) fail_errno("waitpid()");
-
-			if(WIFEXITED(status))
-				printf("(%d) - exited with status %d\n",pid,WEXITSTATUS(status));
-			else
-				printf("Something went wrong\n");
-	}*/
 }
 
 

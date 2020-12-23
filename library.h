@@ -23,7 +23,7 @@
 void fail_errno(char *arg);
 void fail(char *arg);
 int char_cntrl(char ch);
-void _dup2(int to_redir, int to_close, int redir_fd);
+void _dup(int to_redir, int redir_fd);
 
 
 // shell.c
