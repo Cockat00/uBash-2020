@@ -29,20 +29,15 @@ char *parse_builtin(char *token, char *saveptr){
 void parse_ext2(char *ext_cmd){
 	char *token = NULL, *tmp = NULL, *saveptr = NULL;
 	int num_cmd = count_args(ext_cmd,"|");
+	char *cmd_list[num_cmd];
 	int i = 0;
-
-	char **cmd_list = (char **)malloc(num_cmd * sizeof(char *));
-	if(cmd_list == NULL) fail_errno(ext_cmd);
 
 	for(tmp = ext_cmd; ;tmp = NULL){
 		token = strtok_r(tmp,"|",&saveptr);
 		if(token == NULL) break;
 		cmd_list[i++] = token;
 	}
-
-		exec_ext(cmd_list,num_cmd);
-
-	free(cmd_list);
+	exec_ext(cmd_list,ext_cmd,num_cmd);
 }
 
 
@@ -73,58 +68,6 @@ void parse_input(char *big_input){
 		token = strtok_r(big_input," ",&saveptr);	// Consume 'cd' token
 		cmmd = parse_builtin(token,saveptr);	
 		exec_builtin(cmmd);
-	}else{
+	}else 
 		parse_ext2(big_input);
-	}
 }
-
-
-// Old parser
-
-	/*for(str1 = cpy; ;str1 = NULL){
-		token = strtok_r(str1,"|",&saveptr);
-		if(token == NULL) break;
-		if(parse_cmd(token,count) == -1)
-			break;
-	}*/
-
-/*void parse_ext(char *ext_cmd){
-	char *token = NULL, *tmp = NULL, *saveptr = NULL;
-	int count = 0;		// Used for some error check (to be implemented soon)
-
-	char *cpy = malloc(strlen(ext_cmd) + 1);
-	if(cpy == NULL) fail_errno("parse_ext");
-	strcpy(cpy,ext_cmd);
-
-	for(tmp = cpy; ;tmp = NULL){
-		token = strtok_r(tmp,"|",&saveptr);
-		if(token == NULL) break;
-		exec_ext(token);
-		//printf("Actual: '%s' | Next: '%s'\n", token, saveptr);
-		count++;
-	}
-	free(cpy);
-}*/
-
-/*With parse_cmd we'll be able to detect whenever
-  a string refer to a builtin or an external command.*/
-/*int parse_cmd(char *cmd, char *ptr, int count){
-	char *saveptr = NULL;
-	char *token = NULL;
-	char *cmmd = NULL; //La prima stringa che definisce il comando da eseguire
-
-	printf("%s\n", ptr);
-	token = strtok_r(cmd," ",&saveptr);
-	if(token){
-		if(strcmp(token,"cd") == 0){ 
-			cmmd = parse_builtin(saveptr,token);	//Start builtin command module
-			exec_builtin(cmmd);
-		} 
-		else{
-			cmmd = parse_ext(big_input);	
-			if(cmmd == NULL) return -1;
-			_dummy_method();
-		}
-	}
-	return 0;
-}*/

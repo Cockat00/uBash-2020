@@ -37,6 +37,7 @@ char *get_input(){
 	return input;
 }
 
+
 void uBash(){
 	char *path = NULL;
 	char *big_input = NULL;
@@ -47,14 +48,14 @@ void uBash(){
         free(path);
 
 	big_input = get_input();
-	if(big_input == NULL || strcmp("exit",big_input) == 0){
+
+	if(big_input == NULL){
 		printf("\n");
 		exit(EXIT_SUCCESS);
 	}else{
 		if(strcmp(big_input,"") > 0){
 			parse_input(big_input);	
 			free(big_input);
-		}
-		//free(big_input);	
+		}	
 	}	
 }

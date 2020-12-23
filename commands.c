@@ -19,25 +19,18 @@ int count_args(char *vect, char *delim){
 }
 
 
-int seek_args(char *src, char **dest){
+void seek_args(char *src, char **dest){
 	char *delim = " ";
 	int i = 0;
 
 	char *token = strtok(src,delim);
-
-	/*if(strcmp("cd",token) == 0){
-		fprintf(stderr, "Invalid use of '%s' builtin command", token);
-		return -1;
-	}*/
 
 	while(token){
 		dest[i] = token;
 		token = strtok(NULL,delim);
 		i++;
 	}
-	dest[i] = NULL;
-
-	return 0;	
+	dest[i] = NULL;	
 }
 
 
@@ -54,7 +47,7 @@ void child_status_handle(int status){
 
 
 
-void exec_ext(char **ext, int num_cmd){
+void exec_ext(char **ext, char *big_input, int num_cmd){
 	int pipes = -1;
 	int pipefd[2];
 	int fd_in = 0;
@@ -81,22 +74,21 @@ void exec_ext(char **ext, int num_cmd){
 			int num_args = count_args(ext[j]," ");
 
 			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-			if(seek_args(ext[j],cmd_args) == 0){
-				if(execvp(cmd_args[0],cmd_args) == -1){
-					printf("\n");
-					free(cmd_args);
-					fail_errno(cmd_args[0]);
-				}
+			seek_args(ext[j],cmd_args);
+			if(execvp(cmd_args[0],cmd_args) == -1){
+				fail(cmd_args[0]);
+				free(cmd_args);
+				free(big_input);		// WHY THIS WORK??!!
+				exit(EXIT_FAILURE);
 			}
-		
-			printf("\n");
 			free(cmd_args);
+			printf("\n");
 		}else{
 
 			int status;
 			int wpid;
 
-			while((wpid = waitpid(-1,&status,0)) > 0){
+			while((wpid = waitpid(pid,&status,WUNTRACED)) > 0){
 				if(pipes == 0){
 					close(pipefd[1]);
 					fd_in = pipefd[0];

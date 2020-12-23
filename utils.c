@@ -5,8 +5,17 @@ void fail_errno(char *arg){
 	exit(EXIT_FAILURE);
 }
 
+
 void fail(char *arg){
 	fprintf(stderr,"%s(%d): %s\n",arg,errno,strerror(errno));
+}
+
+
+int valid_cmd_check(char *cmd){
+	if(strstr(cmd," cd ") == NULL) // To ensure that command with 'cd' substring will not be marked as not valid 
+		return -1;
+
+	return 0;
 }
 
 int char_cntrl(char ch){
