@@ -14,8 +14,8 @@
 // Errors
 #define ELARG "Too less arguments"							// Error Less ARGuments
 #define EMARG "Too many arguments"							// Error More ARGuments
-#define EREDIN "Invalid presence of input redirection"
-#define EREDOUT "Invalid presence of output redirection"
+#define EREDIN "Invalid usage of character '<'"
+#define EREDOUT "Invalid usage of character '>'"
 
 #ifdef DEBUG
 	# define DEBUG_PRINT(fmt,...) \
@@ -28,7 +28,7 @@ void fail_errno(char *arg);
 void fail(char *arg);
 int char_cntrl(char ch);
 void _dup(int to_redir, int redir_fd);
-int valid_cmd_check(char *cmd);
+int valid_cmd_check(char *cmd, int index, int num_cmd);
 
 
 // shell.c
@@ -40,7 +40,7 @@ void uBash();
 // parse.c
 void parse_input(char *arg);
 char *parse_builtin(char *token, char *saveptr);
-void parse_ext2(char *ext_cmd);
+void parse_cmd(char *ext_cmd);
 	
 
 //commands.c

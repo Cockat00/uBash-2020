@@ -1,11 +1,5 @@
 #include "library.h"
 
-/*Simple method used as a debug purpose*/
-void _dummy_method(){
-	printf("Dummy reached\n");
-}
-
-
 
 char *parse_builtin(char *token, char *saveptr){
 	char *res = NULL;
@@ -25,26 +19,80 @@ char *parse_builtin(char *token, char *saveptr){
 }
 
 
+//TODO: Please Refactoring in a fancier way
+int valid_cmd_check(char *cmd, int index, int num_cmd){
+	char *ptr = NULL;
 
-void parse_ext2(char *ext_cmd){
-	char *token = NULL, *tmp = NULL, *saveptr = NULL;
-	int num_cmd = count_args(ext_cmd,"|");
-	char *cmd_list[num_cmd];
-	int i = 0;
+	if(strstr(cmd,"cd") != NULL){
+		if(num_cmd > 1){
+			fprintf(stderr, "Cannot use a builtin command in this context\n");
+			return -1;
+		} return 1;
+	} 
 
-	for(tmp = ext_cmd; ;tmp = NULL){
-		token = strtok_r(tmp,"|",&saveptr);
-		if(token == NULL) break;
-		cmd_list[i++] = token;
+	ptr = strchr(cmd,'>');
+	if(ptr != NULL){
+		if(num_cmd > 1){
+			if((index + 1) < num_cmd){
+				fprintf(stderr,"%s\n",EREDOUT);
+				return -1;
+			}
+		}
+
+		if(ptr[1] == ' '){
+			fprintf(stderr, "Cannot find redirection argument\n");
+			return -1;
+		}
 	}
-	exec_ext(cmd_list,ext_cmd,num_cmd);
+
+	ptr = strchr(cmd,'<');
+	if(ptr != NULL){
+		if(num_cmd > 1){
+			if(index > 0){
+				fprintf(stderr,"%s\n",EREDOUT);
+				return -1;
+			}
+		}
+
+		if(ptr[1] == ' '){
+			fprintf(stderr, "Cannot find redirection argument\n");
+			return -1;
+		}
+	}
+	return 0;
 }
 
 
 
-/*parse_input's duty is to search for syntax errors and 
-  then define whenever the input refer to a builtin or
-  an external command.*/ 
+void parse_cmd(char *ext_cmd){
+	char *token = NULL, *tmp = NULL, *saveptr = NULL;
+	int num_cmd = count_args(ext_cmd,"|");
+	char *cmd_list[num_cmd];
+	int i = 0, res = 0, builtin = -1;
+
+	for(tmp = ext_cmd; ;tmp = NULL){
+		token = strtok_r(tmp,"|",&saveptr);
+		if(token == NULL) break;
+
+		res = valid_cmd_check(token,i,num_cmd);
+
+		if(res == -1) return;
+
+		if(res == 1) builtin = 0;
+	 	cmd_list[i++] = token;
+	}
+
+	if(builtin == 0){
+		char *token = NULL, *saveptr = NULL, *cmmd = NULL;
+		token = strtok_r(cmd_list[0]," ",&saveptr);	// Consume 'cd' token
+		cmmd = parse_builtin(token,saveptr);	
+		exec_builtin(cmmd);
+	}else 
+		exec_ext(cmd_list,ext_cmd,num_cmd);
+}
+
+
+
 void parse_input(char *big_input){
 
 	if(char_cntrl(big_input[0]) == 0){
@@ -57,17 +105,5 @@ void parse_input(char *big_input){
 		return;
 	}
 
-	char builtin[2];
-	builtin[0] = big_input[0];
-	builtin[1] = big_input[1];
-
-	char *cmmd = NULL;
-
-	if(strcmp("cd",builtin) == 0){
-		char *token = NULL, *saveptr = NULL;
-		token = strtok_r(big_input," ",&saveptr);	// Consume 'cd' token
-		cmmd = parse_builtin(token,saveptr);	
-		exec_builtin(cmmd);
-	}else 
-		parse_ext2(big_input);
+	parse_cmd(big_input);
 }

@@ -11,12 +11,6 @@ void fail(char *arg){
 }
 
 
-int valid_cmd_check(char *cmd){
-	if(strstr(cmd," cd ") == NULL) // To ensure that command with 'cd' substring will not be marked as not valid 
-		return -1;
-
-	return 0;
-}
 
 int char_cntrl(char ch){
 	int res = -1;
@@ -24,6 +18,8 @@ int char_cntrl(char ch){
 		res = 0;
 	return res;
 }
+
+
 
 void _dup(int to_redir, int redir_fd){
 	int dup_res = 0;

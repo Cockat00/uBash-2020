@@ -48,9 +48,7 @@ void child_status_handle(int status){
 
 
 void exec_ext(char **ext, char *big_input, int num_cmd){
-	int pipes = -1;
-	int pipefd[2];
-	int fd_in = 0;
+	int pipes = -1; int pipefd[2]; int fd_in = 0;
 
 	if(num_cmd > 1) pipes = 0;
 
