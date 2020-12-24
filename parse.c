@@ -12,10 +12,26 @@ char *parse_builtin(char *token, char *saveptr){
 	while(token){
 		token = strtok_r(NULL," ",&saveptr);
 		if(token != NULL)
-			//TODO: Scan argument type and give proper error message
 			return EMARG;
 	}
 	return res;	
+}
+
+
+int check_builtin(char *sub_cmd){
+	int res = -1;
+	char *token = NULL;
+
+	char *cpy = malloc(strlen(sub_cmd));
+	if(cpy == NULL) fail_errno("check_builtin");
+	strcpy(cpy,sub_cmd);
+
+	token = strtok(cpy," ");
+
+	if(strcmp(token,"cd") == 0) res = 0;
+
+	free(cpy);
+	return res;
 }
 
 
@@ -23,7 +39,7 @@ char *parse_builtin(char *token, char *saveptr){
 int valid_cmd_check(char *cmd, int index, int num_cmd){
 	char *ptr = NULL;
 
-	if(strstr(cmd,"cd") != NULL){
+	if(check_builtin(cmd) == 0){
 		if(num_cmd > 1){
 			fprintf(stderr, "Cannot use a builtin command in this context\n");
 			return -1;
@@ -64,22 +80,22 @@ int valid_cmd_check(char *cmd, int index, int num_cmd){
 
 
 
-void parse_cmd(char *ext_cmd){
-	char *token = NULL, *tmp = NULL, *saveptr = NULL;
-	int num_cmd = count_args(ext_cmd,"|");
+void parse_cmd(char *big_input){
+	char *sub_cmd = NULL, *tmp = NULL, *saveptr = NULL;
+	int num_cmd = count_args(big_input,"|");
 	char *cmd_list[num_cmd];
 	int i = 0, res = 0, builtin = -1;
 
-	for(tmp = ext_cmd; ;tmp = NULL){
-		token = strtok_r(tmp,"|",&saveptr);
-		if(token == NULL) break;
+	for(tmp = big_input; ;tmp = NULL){
+		sub_cmd = strtok_r(tmp,"|",&saveptr);
+		if(sub_cmd == NULL) break;
 
-		res = valid_cmd_check(token,i,num_cmd);
+		res = valid_cmd_check(sub_cmd,i,num_cmd);
 
 		if(res == -1) return;
 
 		if(res == 1) builtin = 0;
-	 	cmd_list[i++] = token;
+	 	cmd_list[i++] = sub_cmd;
 	}
 
 	if(builtin == 0){
@@ -88,7 +104,7 @@ void parse_cmd(char *ext_cmd){
 		cmmd = parse_builtin(token,saveptr);	
 		exec_builtin(cmmd);
 	}else 
-		exec_ext(cmd_list,ext_cmd,num_cmd);
+		exec_ext(cmd_list,big_input,num_cmd);
 }
 
 
