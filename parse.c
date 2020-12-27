@@ -18,11 +18,12 @@ char *parse_builtin(char *token, char *saveptr){
 }
 
 
+
 int check_builtin(char *sub_cmd){
 	int res = -1;
 	char *token = NULL;
 
-	char *cpy = malloc(strlen(sub_cmd));
+	char *cpy = malloc(strlen(sub_cmd) + 1);
 	if(cpy == NULL) fail_errno("check_builtin");
 	strcpy(cpy,sub_cmd);
 
@@ -35,9 +36,45 @@ int check_builtin(char *sub_cmd){
 }
 
 
+
+int validate_pipe_pos(char *str, int index, int num_cmd){
+
+	//printf("'%c' '%c' - (%d)\n", str[0],str[strlen(str) - 1],index);
+	if(index == 0  &&  str[strlen(str) - 1] != ' ')
+		return -1;
+	
+	if((index + 1) == num_cmd  &&  str[0] != ' ')
+		return -1;
+	
+	if((index + 1) < num_cmd  &&  index > 0){
+		if(str[0] != ' ' || str[strlen(str) - 1] != ' ')
+			return -1;
+	}
+	
+	return 0;
+}
+
 //TODO: Please Refactoring in a fancier way
+
+/*The method search through the sub_command for syntax and semantic errors.
+  It will return 0 if the sub command is valid, -1 if not, 1 if it is 
+  a builtin command. If 1 is returned, *cmd will be parsed with builtin semantic rules*/
 int valid_cmd_check(char *cmd, int index, int num_cmd){
 	char *ptr = NULL;
+
+	if(num_cmd > 1){
+		if(validate_pipe_pos(cmd,index,num_cmd) == -1){
+			fprintf(stderr, "%s\n", E_PIPE);
+			return -1;
+		}
+	}
+
+
+	if(check_num_spaces(cmd) == strlen(cmd)){
+		fprintf(stderr, "Cannot execute a void command\n");
+		return -1;
+	}
+
 
 	if(check_builtin(cmd) == 0){
 		if(num_cmd > 1){

@@ -6,6 +6,7 @@ void fail_errno(char *arg){
 }
 
 
+
 void fail(char *arg){
 	fprintf(stderr,"%s(%d): %s\n",arg,errno,strerror(errno));
 }
@@ -27,4 +28,17 @@ void _dup(int to_redir, int redir_fd){
 	dup_res = dup2(to_redir,redir_fd);
 
 	if(dup_res == -1) fail_errno("_dup");
+}
+
+
+
+int check_num_spaces(char *str){
+	int count = 0;
+
+	for(int i = 0; i < strlen(str); ++i){
+		if(str[i] != ' ') 
+			break;
+		count++;
+	}
+	return count;
 }

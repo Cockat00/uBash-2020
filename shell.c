@@ -1,15 +1,6 @@
 #include "library.h"
 
 
-int check_blank_spaces(char str[]){
-	int count = 0;
-
-	for(int i = 0; i < strlen(str); ++i){
-		if(str[i] == ' ') count++;
-		if(str[i] != ' ') break;
-	}
-	return count;
-}
 
 /*Starting from a STD_BUFSIZE long buffer, get_input()
  * allocate the correct amount of byte (indicated by buf_len)
@@ -26,7 +17,7 @@ char *get_input(){
 			buf_len -= 1;
 		}
 
-		offset = check_blank_spaces(buf);	// We'll not consider blank spaces at beginning
+		offset = check_num_spaces(buf);	// We'll not consider blank spaces at beginning
 
 		if((buf_len - offset) == 0) return "";
 

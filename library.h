@@ -16,6 +16,7 @@
 #define EMARG "Too many arguments"							// Error More ARGuments
 #define EREDIN "Invalid usage of character '<'"
 #define EREDOUT "Invalid usage of character '>'"
+#define E_PIPE "Invalid usage of pipe"
 
 #ifdef DEBUG
 	# define DEBUG_PRINT(fmt,...) \
@@ -32,7 +33,7 @@ int valid_cmd_check(char *cmd, int index, int num_cmd);
 
 
 // shell.c
-int check_blank_spaces(char str[]);
+int check_num_spaces(char str[]);
 char *get_input();
 void uBash();
 
