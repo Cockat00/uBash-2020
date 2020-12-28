@@ -39,7 +39,6 @@ int check_builtin(char *sub_cmd){
 
 int validate_pipe_pos(char *str, int index, int num_cmd){
 
-	//printf("'%c' '%c' - (%d)\n", str[0],str[strlen(str) - 1],index);
 	if(index == 0  &&  str[strlen(str) - 1] != ' ')
 		return -1;
 	
@@ -102,7 +101,7 @@ int valid_cmd_check(char *cmd, int index, int num_cmd){
 	if(ptr != NULL){
 		if(num_cmd > 1){
 			if(index > 0){
-				fprintf(stderr,"%s\n",EREDOUT);
+				fprintf(stderr,"%s\n",EREDIN);
 				return -1;
 			}
 		}
@@ -141,7 +140,7 @@ void parse_cmd(char *big_input){
 		cmmd = parse_builtin(token,saveptr);	
 		exec_builtin(cmmd);
 	}else 
-		exec_ext(cmd_list,big_input,num_cmd);
+		exec_sub_cmd(cmd_list,big_input,num_cmd);
 }
 
 

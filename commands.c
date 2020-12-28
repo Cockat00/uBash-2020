@@ -1,22 +1,24 @@
 #include "library.h"
 
 
-int count_args(char *vect, char *delim){
+int count_args(char *str, char *delim){
 	int num_arg = 0;
-	char *token, *str;
+	char *token, *ptr;
 	
-	char *copy = malloc(strlen(vect) + 1);
+	char *copy = malloc(strlen(str) + 1);
 	if(copy == NULL) return -1;
-	strcpy(copy,vect);
+	strcpy(copy,str);
 
-	for(str=copy; ; str = NULL){
-		token = strtok(str,delim);
+	for(ptr=copy; ; ptr = NULL){
+		token = strtok(ptr,delim);
 		if(token == NULL) break;
-		num_arg++;
+		if(token[0] != '<' && token[0] != '>')
+			num_arg++;
 	}
 	free(copy);
 	return num_arg;
 }
+
 
 
 void seek_args(char *src, char **dest){
@@ -26,9 +28,10 @@ void seek_args(char *src, char **dest){
 	char *token = strtok(src,delim);
 
 	while(token){
-		dest[i] = token;
+		if(token[0] != '<' && token[0] != '>'){
+			dest[i++] = token;
+		}
 		token = strtok(NULL,delim);
-		i++;
 	}
 	dest[i] = NULL;	
 }
@@ -46,22 +49,90 @@ void child_status_handle(int status){
 }
 
 
+char get_redir_type(char *cmd){
+	char type = '\0';
 
-void exec_ext(char **ext, char *big_input, int num_cmd){
-	int pipes = -1; int pipefd[2]; int fd_in = 0;
+	char *ptr = strchr(cmd,'<');
+	if(ptr == NULL)
+		ptr = strchr(cmd,'>');
+
+	type = ptr[0];
+	return type;
+}
+
+
+char *redir_IO(char *cmd){
+	char *ptr = strchr(cmd,'<');
+	if(ptr == NULL)
+		ptr = strchr(cmd,'>');
+
+
+	if(ptr != NULL){
+		ptr++;
+
+		for(int i = 0; i < strlen(ptr); ++i){
+			if(ptr[i] == ' '){
+				ptr[i] = '\0';
+				break;
+			}
+		}
+	}
+	return ptr;
+}
+
+
+int manage_redir(char *redir, char type){
+	int open_fd = -1;
+
+	if(type == '<'){
+		open_fd = open(redir, O_RDONLY);
+		if(open_fd == -1){ 
+			fail(redir);
+			return -1;
+		}
+		_dup2(open_fd,STDIN_FILENO);
+	}
+
+	if(type == '>'){
+		open_fd = open(redir, O_WRONLY | O_CREAT | O_APPEND, S_IWUSR | S_IRUSR);
+		if(open_fd == -1){
+			fail(redir);
+			return -1;
+		}
+		_dup2(open_fd,STDOUT_FILENO);
+	}
+
+	return 0;
+}
+
+
+
+void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmd){
+	int pipes = -1, pipefd[2], fd_in = 0;
+	char *redir = NULL;
 
 	if(num_cmd > 1) pipes = 0;
 
 	for(int j = 0; j < num_cmd; ++j){
 
+		redir = redir_IO(sub_cmd[j]);
+
 		if(pipes == 0){
 			if(pipe2(pipefd,O_CLOEXEC) == -1) 
-			fail_errno("exec_ext");	
+			fail_errno("exec_sub_cmd");	
 		}
 
 		pid_t pid = fork();
-		if(pid == -1) fail_errno("exec_ext");
+		if(pid == -1) fail_errno(sub_cmd[j]);
 		if(pid == 0){
+			if(redir != NULL){
+				char type = get_redir_type(sub_cmd[j]);
+				if(manage_redir(redir,type) == -1){
+					free(big_input);
+					exit(EXIT_FAILURE);
+				}
+			}
+
 			if(pipes == 0){
 				if(fd_in != 0) _dup(fd_in,STDIN_FILENO);
 				if((j + 1) < num_cmd) _dup(pipefd[1],STDOUT_FILENO);
@@ -69,29 +140,31 @@ void exec_ext(char **ext, char *big_input, int num_cmd){
 				close(pipefd[1]);
 			}
 
-			int num_args = count_args(ext[j]," ");
+			int num_args = count_args(sub_cmd[j]," ");
 
 			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-			seek_args(ext[j],cmd_args);
+			seek_args(sub_cmd[j],cmd_args);
 			if(execvp(cmd_args[0],cmd_args) == -1){
 				fail(cmd_args[0]);
 				free(cmd_args);
 				free(big_input);		// WHY THIS WORK??!!
 				exit(EXIT_FAILURE);
 			}
+			//if(redir) close(open_fd);
 			free(cmd_args);
 			printf("\n");
 		}else{
 
 			int status;
-			int wpid;
 
-			while((wpid = waitpid(pid,&status,WUNTRACED)) > 0){
+			do{
+				pid_t wpid = waitpid(pid,&status,WUNTRACED);
 				if(pipes == 0){
 					close(pipefd[1]);
 					fd_in = pipefd[0];
-					if(j >= num_cmd)
+					if((j + 1) == num_cmd){
 						close(pipefd[0]);
+					}
 				}
 
 				if(wpid == -1) 
@@ -100,7 +173,7 @@ void exec_ext(char **ext, char *big_input, int num_cmd){
 			#ifdef DEBUG
 				child_status_handle(status);
 			#endif
-			}
+			}while(!WIFEXITED(status) && !WIFSIGNALED(status));
 		}
 	}
 }

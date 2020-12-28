@@ -19,9 +19,15 @@
 #define E_PIPE "Invalid usage of pipe"
 
 #ifdef DEBUG
-	# define DEBUG_PRINT(fmt,...) \
-				do { if (DEBUG) fprintf(stdout, fmt, __VA_ARGS__); } while (0)
+	# define DEBUG_PRINT printf
 #endif
+
+struct strCmd{
+	char *cmd;
+	char *redir;
+	int red_in;
+	int red_out;
+};
 
 
 // utils.c
@@ -29,7 +35,7 @@ void fail_errno(char *arg);
 void fail(char *arg);
 int char_cntrl(char ch);
 void _dup(int to_redir, int redir_fd);
-int valid_cmd_check(char *cmd, int index, int num_cmd);
+void _dup2(int to_redir, int dest);
 
 
 // shell.c
@@ -42,10 +48,11 @@ void uBash();
 void parse_input(char *arg);
 char *parse_builtin(char *token, char *saveptr);
 void parse_cmd(char *ext_cmd);
+int valid_cmd_check(char *cmd, int index, int num_cmd);
 	
 
 //commands.c
 void cd(char *path);
 void exec_builtin(char *arg);
-void exec_ext(char **ext, char *big_input, int num_cmd);
+void exec_sub_cmd(char **ext, char *big_input, int num_cmd);
 int count_args(char *vect, char *delim);
