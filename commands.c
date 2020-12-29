@@ -20,7 +20,6 @@ int count_args(char *str, char *delim){
 }
 
 
-
 void seek_args(char *src, char **dest){
 	char *delim = " ";
 	int i = 0;
@@ -92,6 +91,7 @@ int manage_redir(char *redir, char type){
 			return -1;
 		}
 		_dup2(open_fd,STDIN_FILENO);
+		close(open_fd);
 	}
 
 	if(type == '>'){
@@ -101,6 +101,7 @@ int manage_redir(char *redir, char type){
 			return -1;
 		}
 		_dup2(open_fd,STDOUT_FILENO);
+		close(open_fd);
 	}
 
 	return 0;
@@ -133,13 +134,6 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 					exit(EXIT_FAILURE);
 				}
 			}
-			/*if(redir != NULL){
-				char type = get_redir_type(sub_cmd[j]);
-				if(manage_redir(redir,type) == -1){
-					free(big_input);
-					exit(EXIT_FAILURE);
-				}
-			}*/
 
 			if(pipes == 0){
 				if(fd_in != 0) _dup(fd_in,STDIN_FILENO);
@@ -151,14 +145,13 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 			int num_args = count_args(sub_cmd[j]," ");
 
 			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-			seek_args(sub_cmd[j],cmd_args);
+			seek_args(sub_cmd[j],cmd_args); 
 			if(execvp(cmd_args[0],cmd_args) == -1){
 				fail(cmd_args[0]);
 				free(cmd_args);
-				free(big_input);		// WHY THIS WORK??!!
+				free(big_input);
 				exit(EXIT_FAILURE);
 			}
-			//if(redir) close(open_fd);
 			free(cmd_args);
 			printf("\n");
 		}else{
@@ -187,8 +180,6 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 }
 
 
-
-
 void exec_builtin(char *arg){
 
 	if(strcmp(arg,ELARG) == 0){
@@ -205,8 +196,6 @@ void exec_builtin(char *arg){
 	    
 	cd(arg);
 }
-
-
 
 void cd(char *new_path){
 	if(chdir(new_path) == -1) 

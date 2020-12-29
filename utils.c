@@ -54,3 +54,8 @@ int check_num_spaces(char *str){
 	}
 	return count;
 }
+
+void clean_args(char **cmd_list, int num_cmds){
+	for(int i = 0; i < num_cmds; i++)
+		free(cmd_list[i]);
+}
