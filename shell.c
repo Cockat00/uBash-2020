@@ -1,6 +1,17 @@
 #include "library.h"
 
+void trim_end_spaces(char *buf, size_t buf_len){
+	if(buf_len == 0)
+		return;
 
+	for(int i = buf_len - 1; i >= 0; i--){
+		if(buf[i] != ' '){
+			buf[i + 1] = '\0';
+			break;
+		}
+		buf_len--;
+	}
+}
 
 /*Starting from a STD_BUFSIZE long buffer, get_input()
  * allocate the correct amount of byte (indicated by buf_len)
@@ -12,14 +23,14 @@ char *get_input(){
 
 	if(fgets(buf,STD_BUFSIZE,stdin) != NULL){
 		size_t buf_len = strlen(buf);
-		if(buf[buf_len - 1] == '\n'){
-			buf[buf_len - 1] = '\0';
-			buf_len -= 1;
-		}
+		buf[buf_len - 1] = '\0';
+		buf_len--;
 
-		offset = check_num_spaces(buf);	// We'll not consider blank spaces at beginning
+		offset = check_num_spaces(buf);
 
 		if((buf_len - offset) == 0) return "";
+
+		trim_end_spaces(buf,buf_len);
 
 		input = malloc((buf_len - offset) + 1);
 		if(input == NULL) return "";

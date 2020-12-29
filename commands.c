@@ -56,7 +56,8 @@ char get_redir_type(char *cmd){
 	if(ptr == NULL)
 		ptr = strchr(cmd,'>');
 
-	type = ptr[0];
+	if(ptr) type = ptr[0];
+
 	return type;
 }
 
@@ -107,15 +108,15 @@ int manage_redir(char *redir, char type){
 
 
 
-void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmd){
+void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 	int pipes = -1, pipefd[2], fd_in = 0;
-	char *redir = NULL;
+	char type = '\0';
 
-	if(num_cmd > 1) pipes = 0;
+	if(num_cmds > 1) pipes = 0;
 
-	for(int j = 0; j < num_cmd; ++j){
+	for(int j = 0; j < num_cmds; ++j){
 
-		redir = redir_IO(sub_cmd[j]);
+		type = get_redir_type(sub_cmd[j]);
 
 		if(pipes == 0){
 			if(pipe2(pipefd,O_CLOEXEC) == -1) 
@@ -125,17 +126,24 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmd){
 		pid_t pid = fork();
 		if(pid == -1) fail_errno(sub_cmd[j]);
 		if(pid == 0){
-			if(redir != NULL){
-				char type = get_redir_type(sub_cmd[j]);
+			if(type){
+				char *redir = redir_IO(sub_cmd[j]);
 				if(manage_redir(redir,type) == -1){
 					free(big_input);
 					exit(EXIT_FAILURE);
 				}
 			}
+			/*if(redir != NULL){
+				char type = get_redir_type(sub_cmd[j]);
+				if(manage_redir(redir,type) == -1){
+					free(big_input);
+					exit(EXIT_FAILURE);
+				}
+			}*/
 
 			if(pipes == 0){
 				if(fd_in != 0) _dup(fd_in,STDIN_FILENO);
-				if((j + 1) < num_cmd) _dup(pipefd[1],STDOUT_FILENO);
+				if((j + 1) < num_cmds) _dup(pipefd[1],STDOUT_FILENO);
 				close(pipefd[0]);
 				close(pipefd[1]);
 			}
@@ -162,7 +170,7 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmd){
 				if(pipes == 0){
 					close(pipefd[1]);
 					fd_in = pipefd[0];
-					if((j + 1) == num_cmd){
+					if((j + 1) == num_cmds){
 						close(pipefd[0]);
 					}
 				}
