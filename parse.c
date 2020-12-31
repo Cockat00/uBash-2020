@@ -24,6 +24,8 @@ int find_cmd(char *cmd){
 	size_t length = 0;
 	char *ptr = NULL;
 
+	if(!path) return -1;
+
 	do{
 		ptr = strchr(path,':');
 		if(ptr == NULL) ptr = path + strlen(path);
@@ -44,6 +46,7 @@ int find_cmd(char *cmd){
 	}while(ptr != path + strlen(path));
 	return -1;
 }
+
 
 /*Taking the first substring of the command (logically the command itself)
   check_cmd_type will return an integer, which indicate if the command

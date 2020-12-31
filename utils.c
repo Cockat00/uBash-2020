@@ -27,19 +27,10 @@ void check_fd(int fd){
 }
 
 
-void _dup(int to_redir, int redir_fd){
-	int dup_res = 0;
-
-	dup_res = dup2(to_redir,redir_fd);
-
-	if(dup_res == -1) fail_errno("_dup");
-}
-
 void _dup2(int to_redir, int dest){
 	if(dup2(to_redir,dest) == -1)
 		fail_errno("_dup2");
-
-	close(to_redir);
+	//fprintf(stderr,"child: [%d]  -->  [%d]\n", dest,to_redir);
 }
 
 

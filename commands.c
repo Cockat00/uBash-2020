@@ -20,19 +20,25 @@ int count_args(char *str, char *delim){
 }
 
 
-void seek_args(char *src, char **dest){
+int seek_args(char *src, char **dest){
 	char *delim = " ";
 	int i = 0;
 
 	char *token = strtok(src,delim);
 
 	while(token){
-		if(token[0] != '<' && token[0] != '>'){
-			dest[i++] = token;
+		if(token[0] != '<' && token[0] != '>'){		// Ignoring redirection file, they're not arguments
+			if(token[0] == '$' && token[1] != ' ' && token[1] != '\0'){
+				if((dest[i++] = getenv(token + 1)) == NULL){
+					fprintf(stderr, "%s: Variable not found\n", token);
+					return -1;
+				}
+			}else dest[i++] = token;
 		}
 		token = strtok(NULL,delim);
 	}
 	dest[i] = NULL;	
+	return 0;
 }
 
 
@@ -107,10 +113,27 @@ int manage_redir(char *redir, char type){
 	return 0;
 }
 
+int execution(char *sub_cmd){
+	int num_args = count_args(sub_cmd," ");
+
+	char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
+	if(seek_args(sub_cmd,cmd_args) == -1){
+		free(cmd_args);
+		return -1;
+	} 
+
+	if(execvp(cmd_args[0],cmd_args) == -1){
+		fail(cmd_args[0]);
+		free(cmd_args);
+		return -1;
+	}
+	free(cmd_args);
+	return 0;
+}
 
 
 void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
-	int pipes = -1, pipefd[2], fd_in = 0;
+	int pipes = -1, pipefd[2], fd_in = -1;
 	char type = '\0';
 
 	if(num_cmds > 1) pipes = 0;
@@ -125,7 +148,10 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 		}
 
 		pid_t pid = fork();
-		if(pid == -1) fail_errno(sub_cmd[j]);
+		if(pid == -1){
+			free(big_input);
+			fail_errno(sub_cmd[j]);
+		}
 		if(pid == 0){
 			if(type){
 				char *redir = redir_IO(sub_cmd[j]);
@@ -136,37 +162,36 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 			}
 
 			if(pipes == 0){
-				if(fd_in != 0) _dup(fd_in,STDIN_FILENO);
-				if((j + 1) < num_cmds) _dup(pipefd[1],STDOUT_FILENO);
-				close(pipefd[0]);
+				if(fd_in > -1 && j > 0){
+					_dup2(fd_in,STDIN_FILENO);
+					close(fd_in);
+				}
+				if((j+1) < num_cmds) _dup2(pipefd[1],STDOUT_FILENO);
 				close(pipefd[1]);
+				close(pipefd[0]);
 			}
 
-			int num_args = count_args(sub_cmd[j]," ");
-
-			char **cmd_args = (char **)malloc((num_args + 1) * sizeof(char*));
-			seek_args(sub_cmd[j],cmd_args); 
-			if(execvp(cmd_args[0],cmd_args) == -1){
-				fail(cmd_args[0]);
-				free(cmd_args);
+			if(execution(sub_cmd[j]) == -1){
 				free(big_input);
 				exit(EXIT_FAILURE);
 			}
-			free(cmd_args);
+
 			printf("\n");
 		}else{
+
+			if(pipes == 0){
+				close(pipefd[1]);
+				if(j > 0)
+					close(fd_in);
+				fd_in = pipefd[0];
+				if((j + 1) == num_cmds)
+					close(pipefd[0]);
+			}
 
 			int status;
 
 			do{
 				pid_t wpid = waitpid(pid,&status,WUNTRACED);
-				if(pipes == 0){
-					close(pipefd[1]);
-					fd_in = pipefd[0];
-					if((j + 1) == num_cmds){
-						close(pipefd[0]);
-					}
-				}
 
 				if(wpid == -1) 
 					fail_errno("waitpid()");

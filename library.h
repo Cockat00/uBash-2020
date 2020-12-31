@@ -22,19 +22,11 @@
 	# define DEBUG_PRINT printf
 #endif
 
-struct strCmd{
-	char *cmd;
-	char *redir;
-	int red_in;
-	int red_out;
-};
-
 
 // utils.c
 void fail_errno(char *arg);
 void fail(char *arg);
 int char_cntrl(char ch);
-void _dup(int to_redir, int redir_fd);
 void _dup2(int to_redir, int dest);
 
 
