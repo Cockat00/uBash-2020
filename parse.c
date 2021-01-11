@@ -3,16 +3,22 @@
 
 char *parse_builtin(char *token, char *saveptr){
 	char *res = NULL;
+	int count = 0;
 
 	token = strtok_r(NULL," ",&saveptr);
 	res = token;
 
 	if(res == NULL) return ELARG;
+	if(res[0] == '<' || res[0] == '>') return CDREDIR;
+	count++;
 
 	while(token){
 		token = strtok_r(NULL," ",&saveptr);
-		if(token != NULL)
-			return EMARG;
+		if(token != NULL){
+			count++;
+			if(token[0] == '<' || token[0] == '>') return CDREDIR;
+			if(count > 1) return EMARG;
+		}
 	}
 	return res;	
 }
@@ -69,34 +75,48 @@ int check_cmd_type(char *sub_cmd){
 }
 
 
-int validate_pipe_pos(char *str, int index, int num_cmd){
+int validate_redir(char *cmd, int total_cmds, int num_cmd){
+	char *ptr = NULL;
+	char redir[2] = {'<','>'};
 
-	if(index == 0  &&  str[strlen(str) - 1] != ' ')
-		return -1;
-	
-	if((index + 1) == num_cmd  &&  str[0] != ' ')
-		return -1;
-	
-	if((index + 1) < num_cmd  &&  index > 0){
-		if(str[0] != ' ' || str[strlen(str) - 1] != ' ')
-			return -1;
+	for(int i = 0; i < 2; i++){
+		ptr = strchr(cmd,redir[i]);
+		if(ptr){
+			if(ptr[1] == ' '){
+				fprintf(stderr, "Cannot find redirection argument\n");
+				return -1;
+			}
+			if(i == 0){
+				if(num_cmd > 0){
+					fprintf(stderr,"%s\n",EREDIN);
+					return -1;
+				}
+			}else{
+				if((num_cmd + 1) < total_cmds){
+					fprintf(stderr,"%s\n",EREDOUT);
+					return -1;
+				}
+			}
+			
+			ptr = strchr(ptr,' ');
+			while(ptr){
+				if(ptr[0] != ' '){
+					fprintf(stderr, "%s\n", "Cannot use more arguments after redirection");
+					return -1;
+				}
+				ptr++;
+			}
+		}
 	}
+
 	return 0;
 }
 
-//TODO: Please Refactoring in a fancier way
 
 /*The method search through the sub_command for syntax and semantic errors.
   It will return 0 if the sub command is valid, -1 if not, 1 if it is 
   a builtin command. If 1 is returned, *cmd will be parsed with builtin semantic rules*/
 int valid_cmd_check(char *cmd, int index, int num_cmd){
-
-	if(num_cmd > 1){
-		if(validate_pipe_pos(cmd,index,num_cmd) == -1){
-			fprintf(stderr, "%s\n", E_PIPE);
-			return -1;
-		}
-	}
 
 	if(check_num_spaces(cmd) == strlen(cmd)){
 		fprintf(stderr, "Cannot execute a void command\n");
@@ -115,37 +135,9 @@ int valid_cmd_check(char *cmd, int index, int num_cmd){
 		return -1;
 	}
 
-	char *ptr = NULL;
-
-	ptr = strchr(cmd,'>');
-	if(ptr != NULL){
-		if(num_cmd > 1){
-			if((index + 1) < num_cmd){
-				fprintf(stderr,"%s\n",EREDOUT);
-				return -1;
-			}
-		}
-
-		if(ptr[1] == ' '){
-			fprintf(stderr, "Cannot find redirection argument\n");
-			return -1;
-		}
-	}
-
-	ptr = strchr(cmd,'<');
-	if(ptr != NULL){
-		if(num_cmd > 1){
-			if(index > 0){
-				fprintf(stderr,"%s\n",EREDIN);
-				return -1;
-			}
-		}
-
-		if(ptr[1] == ' '){
-			fprintf(stderr, "Cannot find redirection argument\n");
-			return -1;
-		}
-	}
+	if(validate_redir(cmd,num_cmd,index) == -1)
+		return -1;
+	
 	return 0;
 }
 
@@ -169,7 +161,6 @@ void parse_cmd(char *big_input){
 	 	cmd_list[i++] = sub_cmd;
 	}
 
-
 	if(builtin == 0){
 		char *token = NULL, *saveptr = NULL, *new_dir = NULL;
 		token = strtok_r(cmd_list[0]," ",&saveptr);	// Consume 'cd' token
@@ -177,7 +168,6 @@ void parse_cmd(char *big_input){
 		exec_builtin(new_dir);
 	}else 
 		exec_sub_cmd(cmd_list,big_input,num_cmd);
-
 }
 
 

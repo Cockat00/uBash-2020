@@ -22,7 +22,12 @@ commands.o: utils.o commands.c library.h
 utils.o: utils.c library.h
 	$(CC) $(CFLAGS) -c utils.c
 
-.PHONY: clear
+.PHONY: clear tgz
 
 clear:
 	rm -rf *.o vgcore.* $(EXEC)
+
+tgz: clear
+	rm -rf *.o vgcore.* $(EXEC)
+	cd ..; tar cvzf uBash.tgz uBrepo
+

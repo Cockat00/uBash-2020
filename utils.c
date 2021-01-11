@@ -21,12 +21,6 @@ int char_cntrl(char ch){
 }
 
 
-void check_fd(int fd){
-	if(fd == -1)
-		fail_errno("open");
-}
-
-
 void _dup2(int to_redir, int dest){
 	if(dup2(to_redir,dest) == -1)
 		fail_errno("_dup2");
@@ -44,9 +38,4 @@ int check_num_spaces(char *str){
 		count++;
 	}
 	return count;
-}
-
-void clean_args(char **cmd_list, int num_cmds){
-	for(int i = 0; i < num_cmds; i++)
-		free(cmd_list[i]);
 }

@@ -14,6 +14,7 @@
 // Errors
 #define ELARG "Too less arguments"							// Error Less ARGuments
 #define EMARG "Too many arguments"							// Error More ARGuments
+#define CDREDIR "Redirection in a builtin command"
 #define EREDIN "Invalid usage of character '<'"
 #define EREDOUT "Invalid usage of character '>'"
 #define E_PIPE "Invalid usage of pipe"
@@ -28,17 +29,17 @@ void fail_errno(char *arg);
 void fail(char *arg);
 int char_cntrl(char ch);
 void _dup2(int to_redir, int dest);
+int check_num_spaces(char str[]);
 
 
 // shell.c
-int check_num_spaces(char str[]);
 char *get_input();
 void uBash();
 
 
 // parse.c
 void parse_input(char *arg);
-char *parse_builtin(char *token, char *saveptr);
+//char *parse_builtin(char *builtin);
 void parse_cmd(char *ext_cmd);
 int valid_cmd_check(char *cmd, int index, int num_cmd);
 	

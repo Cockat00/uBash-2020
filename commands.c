@@ -208,14 +208,20 @@ void exec_sub_cmd(char **sub_cmd, char *big_input, int num_cmds){
 void exec_builtin(char *arg){
 
 	if(strcmp(arg,ELARG) == 0){
-		printf("cd: Expected one argument.\n");
+		fprintf(stderr,"cd: %s.\n",ELARG);
 		return;
 	}
 
 	if(strcmp(arg,EMARG) == 0){
-		printf("cd: Too many arguments.\n");
+		fprintf(stderr,"cd: %s.\n",EMARG);
 		return;
 	}
+
+	if(strcmp(arg,CDREDIR) == 0){
+		fprintf(stderr,"cd: %s.\n",CDREDIR);
+		return;
+	}
+
 	if(strcmp(arg,"~") == 0) 
 		arg = getenv("HOME");
 	    
